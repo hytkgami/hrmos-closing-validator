@@ -17,7 +17,7 @@ const apiRoot = "https://ieyasu.co/api"
 
 func host() string {
 	company := os.Getenv("COMPANY_ID")
-	return fmt.Sprintf("%s/%s/", apiRoot, company)
+	return fmt.Sprintf("%s/%s/v1/", apiRoot, company)
 }
 
 func httpClient() *http.Client {
@@ -26,7 +26,7 @@ func httpClient() *http.Client {
 	}
 }
 
-func Get(ctx context.Context, path string, params map[string]string, additionalHeader map[string]string) (*http.Response, error) {
+func Get(ctx context.Context, path string, params map[string]string, additionalHeader map[string]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, host()+path, nil)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func Get(ctx context.Context, path string, params map[string]string, additionalH
 	return extract(response)
 }
 
-func Delete(ctx context.Context, path string, data []byte, additionalHeader map[string]string) (*http.Response, error) {
+func Delete(ctx context.Context, path string, data []byte, additionalHeader map[string]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, host()+path, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func addHeaders(request *http.Request, headers map[string]string) {
 	}
 }
 
-func extract(response *http.Response) (*http.Response, error) {
+func extract(response *http.Response) ([]byte, error) {
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -77,5 +77,5 @@ func extract(response *http.Response) (*http.Response, error) {
 		}
 		return nil, fmt.Errorf("status code: %d, message: %s", errBody.Code, errBody.Message)
 	}
-	return response, nil
+	return body, nil
 }
