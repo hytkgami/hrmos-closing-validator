@@ -26,7 +26,7 @@ func httpClient() *http.Client {
 	}
 }
 
-func Get(ctx context.Context, path string, params map[string]string) (*http.Response, error) {
+func Get(ctx context.Context, path string, params map[string]string, additionalHeader map[string]string) (*http.Response, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, host()+path, nil)
 	if err != nil {
 		return nil, err
@@ -36,6 +36,7 @@ func Get(ctx context.Context, path string, params map[string]string) (*http.Resp
 		queries.Set(key, value)
 	}
 	request.URL.RawQuery = queries.Encode()
+	addHeaders(request, additionalHeader)
 	response, err := httpClient().Do(request)
 	if err != nil {
 		return nil, err
@@ -43,16 +44,24 @@ func Get(ctx context.Context, path string, params map[string]string) (*http.Resp
 	return extract(response)
 }
 
-func Delete(ctx context.Context, path string, data []byte) (*http.Response, error) {
+func Delete(ctx context.Context, path string, data []byte, additionalHeader map[string]string) (*http.Response, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, host()+path, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
+	addHeaders(request, additionalHeader)
 	response, err := httpClient().Do(request)
 	if err != nil {
 		return nil, err
 	}
 	return extract(response)
+}
+
+func addHeaders(request *http.Request, headers map[string]string) {
+	request.Header.Add("Content-Type", "application/json")
+	for key, value := range headers {
+		request.Header.Add(key, value)
+	}
 }
 
 func extract(response *http.Response) (*http.Response, error) {
