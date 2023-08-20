@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -35,6 +36,18 @@ func Get(ctx context.Context, path string, params map[string]string) (*http.Resp
 		queries.Set(key, value)
 	}
 	request.URL.RawQuery = queries.Encode()
+	response, err := httpClient().Do(request)
+	if err != nil {
+		return nil, err
+	}
+	return extract(response)
+}
+
+func Delete(ctx context.Context, path string, data []byte) (*http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, host()+path, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
 	response, err := httpClient().Do(request)
 	if err != nil {
 		return nil, err
