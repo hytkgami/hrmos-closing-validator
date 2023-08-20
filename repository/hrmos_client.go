@@ -1,4 +1,4 @@
-package internal
+package repository
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ func httpClient() *http.Client {
 	}
 }
 
-func Get(ctx context.Context, path string, params map[string]string, additionalHeader map[string]string) ([]byte, error) {
+func get(ctx context.Context, path string, params map[string]string, additionalHeader map[string]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, host()+path, nil)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func Get(ctx context.Context, path string, params map[string]string, additionalH
 	return extract(response)
 }
 
-func Delete(ctx context.Context, path string, data []byte, additionalHeader map[string]string) ([]byte, error) {
+func delete(ctx context.Context, path string, data []byte, additionalHeader map[string]string) ([]byte, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, host()+path, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func extract(response *http.Response) ([]byte, error) {
 		if err := json.Unmarshal(body, &errBody); err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("status code: %d, message: %s", errBody.Code, errBody.Message)
+		return nil, fmt.Errorf("HTTP Status %d, code: %d, message: %s", response.StatusCode, errBody.Code, errBody.Message)
 	}
 	return body, nil
 }
